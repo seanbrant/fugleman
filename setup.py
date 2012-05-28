@@ -1,6 +1,5 @@
 import codecs
 import os
-from importlib import import_module
 from setuptools import find_packages, setup
 
 import fugleman
@@ -20,4 +19,9 @@ setup(
     author_email='brant.sean@gmail.com',
     license='BSD',
     packages=find_packages(),
+    entry_points={
+        'console_scripts': [
+            'fug = fugleman.cli:run',
+        ]
+    },
 )
