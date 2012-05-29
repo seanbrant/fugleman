@@ -1,6 +1,18 @@
-from optparse import OptionParser, make_option
+import sys
+from optparse import OptionParser
 
 from fugleman import get_version
+
+
+class CommandError(Exception):
+    """
+    Indicates that a problem occurred while running a command.
+
+    If this exception is raised during a command run the runner
+    will catch it and print a error to stdout.
+
+    """
+    pass
 
 
 class BaseCommand(object):
@@ -58,5 +70,32 @@ class ServeCommand(BaseCommand):
     help = "Starts a development server for serving your Fugleman project."
     args = '[optional port number, or ipaddr:port] [directory]'
 
+    DEFAULT_ADDR = '127.0.0.1'
+    DEFAULT_PORT = '8989'
+
     def handle(self, addrport=None, directory=None, *args, **kwargs):
-        pass
+        if addrport is None:
+            self.addr = self.DEFAULT_ADDR
+            self.port = self.DEFAULT_PORT
+        else:
+            try:
+                self.addr, self.port = addrport.split(':')
+            except ValueError:
+                self.addr = self.DEFAULT_ADDR
+                self.port = addrport
+
+        try:
+            self.port = int(self.port)
+        except ValueError:
+            raise CommandError("%r is not a valid port number." % self.port)
+
+        self.stdout.write((
+            "Fugleman version %(version)s\n"
+            "Development server is running at http://%(addr)s:%(port)s/\n"
+            "Quit the server with %(quit_command)s.\n"
+        ) % {
+            'version': get_version(),
+            'addr': self.addr,
+            'port': self.port,
+            'quit_command': (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C',
+        })
