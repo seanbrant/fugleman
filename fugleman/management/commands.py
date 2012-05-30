@@ -77,19 +77,19 @@ class ServeCommand(BaseCommand):
 
     def handle(self, addrport=None, directory=None, *args, **kwargs):
         if addrport is None:
-            self.addr = self.DEFAULT_ADDR
-            self.port = self.DEFAULT_PORT
+            addr = self.DEFAULT_ADDR
+            port = self.DEFAULT_PORT
         else:
             try:
-                self.addr, self.port = addrport.split(':')
+                addr, port = addrport.split(':')
             except ValueError:
-                self.addr = self.DEFAULT_ADDR
-                self.port = addrport
+                addr = self.DEFAULT_ADDR
+                port = addrport
 
         try:
-            self.port = int(self.port)
+            port = int(port)
         except ValueError:
-            raise CommandError("%r is not a valid port number." % self.port)
+            raise CommandError("%r is not a valid port number." % port)
 
         self.stdout.write((
             "Fugleman version %(version)s\n"
@@ -97,14 +97,16 @@ class ServeCommand(BaseCommand):
             "Quit the server with %(quit_command)s.\n"
         ) % {
             'version': get_version(),
-            'addr': self.addr,
-            'port': self.port,
+            'addr': addr,
+            'port': port,
             'quit_command': (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C',
         })
 
         try:
-            httpd = make_server(self.addr, self.port, WSGIHandler())
-            httpd.serve_forever()
+            self.run(addr, port)
         except KeyboardInterrupt:
-            httpd.shutdown()
             sys.exit(0)
+
+    def run(self, addr, port):
+        httpd = make_server(addr, port, WSGIHandler())
+        httpd.serve_forever()
