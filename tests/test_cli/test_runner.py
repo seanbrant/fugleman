@@ -4,7 +4,7 @@ from StringIO import StringIO
 from mock import Mock
 
 from fugleman import get_version
-from fugleman.cli.runner import CommandRunner
+from fugleman.management.runner import CommandRunner
 
 
 class BaseCommandRunnerTestCase(TestCase):

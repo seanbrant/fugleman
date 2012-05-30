@@ -1,6 +1,6 @@
 import sys
 
-from fugleman.cli.runner import CommandRunner
+from fugleman.management.runner import CommandRunner
 
 
 def run():

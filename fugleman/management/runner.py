@@ -3,7 +3,7 @@ import sys
 from optparse import OptionParser
 
 from fugleman import get_version
-from fugleman.cli import commands
+from fugleman.management import commands
 
 
 class CommandRunner(object):

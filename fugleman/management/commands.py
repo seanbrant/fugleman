@@ -1,7 +1,9 @@
 import sys
 from optparse import OptionParser
+from wsgiref.simple_server import make_server
 
 from fugleman import get_version
+from fugleman.wsgi import WSGIHandler
 
 
 class CommandError(Exception):
@@ -99,3 +101,10 @@ class ServeCommand(BaseCommand):
             'port': self.port,
             'quit_command': (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C',
         })
+
+        try:
+            httpd = make_server(self.addr, self.port, WSGIHandler())
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            httpd.shutdown()
+            sys.exit(0)
