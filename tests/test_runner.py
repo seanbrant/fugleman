@@ -4,7 +4,7 @@ from StringIO import StringIO
 from mock import Mock
 
 from fugleman import get_version
-from fugleman.management.runner import CommandRunner
+from fugleman.runner import CommandRunner
 
 
 class BaseCommandRunnerTestCase(TestCase):
@@ -14,7 +14,7 @@ class BaseCommandRunnerTestCase(TestCase):
         runner = CommandRunner(list(args), stdout=self.output)
         runner = self.pre_command_run(runner)
         try:
-            runner.run()
+            runner.execute()
         except SystemExit:
             pass  # Ignore error exits
         self.output.seek(0)
@@ -64,7 +64,7 @@ class CommandRunnerWithSubcommandTestCase(BaseCommandRunnerTestCase):
 
     def test_it_runs_the_subcommand(self):
         self.call_command('PROGNAME', 'dostuff')
-        self.subcommand.run.assert_called_with()
+        self.subcommand.execute.assert_called_with()
 
     def test_it_prints_help_for_the_subcommand(self):
         self.call_command('PROGNAME', 'help', 'dostuff')

@@ -2,8 +2,7 @@ import os
 import sys
 from optparse import OptionParser
 
-from fugleman import get_version
-from fugleman.management import commands
+from fugleman import commands, get_version
 
 
 class CommandRunner(object):
@@ -73,7 +72,7 @@ class CommandRunner(object):
             sys.exit(1)
         return subcommand_class(self.prog, name, self.argv[2:], self.stdout)
 
-    def run(self):
+    def execute(self):
         """
         This figures out the subcommand being run and then runs the it.
 
@@ -94,4 +93,4 @@ class CommandRunner(object):
         elif subcommand_name == 'version':
             self.print_version()
         else:
-            self.fetch_subcommand(subcommand_name).run()
+            self.fetch_subcommand(subcommand_name).execute()

@@ -3,7 +3,7 @@ from optparse import OptionParser
 from wsgiref.simple_server import make_server
 
 from fugleman import get_version
-from fugleman.wsgi import WSGIHandler
+from fugleman.wsgi import application
 
 
 class CommandError(Exception):
@@ -52,7 +52,7 @@ class BaseCommand(object):
         """
         self.parser.print_help(self.stdout)
 
-    def run(self):
+    def execute(self):
         """
         Parses the arguments and passes them on to the handler.
 
@@ -108,5 +108,5 @@ class ServeCommand(BaseCommand):
             sys.exit(0)
 
     def run(self, addr, port):
-        httpd = make_server(addr, port, WSGIHandler())
+        httpd = make_server(addr, port, application)
         httpd.serve_forever()

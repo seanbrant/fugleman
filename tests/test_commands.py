@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from mock import Mock
 
-from fugleman.management.commands import CommandError, ServeCommand
+from fugleman.commands import CommandError, ServeCommand
 
 
 class ServeCommandTestCase(TestCase):

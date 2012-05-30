@@ -21,7 +21,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'fug = fugleman.management:run',
+            'fug = fugleman.cli:main',
         ]
     },
 )
