@@ -1,9 +1,11 @@
+import os
 import sys
-from optparse import OptionParser
-from wsgiref.simple_server import make_server
+from importlib import import_module
+from optparse import OptionParser, make_option
 
-from fugleman import get_version
-from fugleman.wsgi import application
+from werkzeug.serving import run_simple
+
+from fugleman import __version__
 
 
 class CommandError(Exception):
@@ -30,7 +32,7 @@ class BaseCommand(object):
         self.parser = OptionParser(
             prog=self.prog,
             usage=self.usage(),
-            version=get_version(),
+            version=__version__,
             option_list=self.option_list,
         )
 
@@ -69,13 +71,30 @@ class BaseCommand(object):
 
 
 class ServeCommand(BaseCommand):
+    option_list = (
+        make_option('-f', '--fugfile',
+            dest='fugfile',
+            action='store',
+            metavar='PATH',
+            default='fugfile',
+            help='Tells Fugleman what module to import. Defaults to fugfile.',
+        ),
+        make_option('-a', '--app',
+            dest='application',
+            action='store',
+            metavar='APP',
+            default='app',
+            help='Tells Fugleman what the application variable is in the '
+                 'fugfile. Defaults to app.',
+        ),
+    )
     help = "Starts a development server for serving your Fugleman project."
-    args = '[optional port number, or ipaddr:port] [directory]'
+    args = '[optional port number, or ipaddr:port]'
 
     DEFAULT_ADDR = '127.0.0.1'
     DEFAULT_PORT = '8989'
 
-    def handle(self, addrport=None, directory=None, *args, **kwargs):
+    def handle(self, addrport=None, *args, **options):
         if addrport is None:
             addr = self.DEFAULT_ADDR
             port = self.DEFAULT_PORT
@@ -91,22 +110,44 @@ class ServeCommand(BaseCommand):
         except ValueError:
             raise CommandError("%r is not a valid port number." % port)
 
+        module_name = options.get('fugfile')
+        var_name = options.get('application')
+        application = self.load_application(module_name, var_name)
+
+        try:
+            self.run(application, addr, port)
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+    def run(self, application, addr, port):
         self.stdout.write((
             "Fugleman version %(version)s\n"
             "Development server is running at http://%(addr)s:%(port)s/\n"
             "Quit the server with %(quit_command)s.\n"
         ) % {
-            'version': get_version(),
+            'version': __version__,
             'addr': addr,
             'port': port,
             'quit_command': (sys.platform == 'win32') and 'CTRL-BREAK' or 'CONTROL-C',
         })
+        run_simple(addr, port, application, use_reloader=True, use_debugger=True)
+
+    def load_application(self, module_name, var_name):
+        if os.getcwd() not in sys.path:
+            sys.path.insert(0, os.getcwd())
+            inserted = True
+        else:
+            inserted = False
 
         try:
-            self.run(addr, port)
-        except KeyboardInterrupt:
-            sys.exit(0)
+            module = import_module(module_name)
+        except ImportError:
+            raise CommandError("Could not load the fugfile named '%s'" % module_name)
+        finally:
+            if inserted:
+                del sys.path[0]
 
-    def run(self, addr, port):
-        httpd = make_server(addr, port, application)
-        httpd.serve_forever()
+        try:
+            return getattr(module, var_name)
+        except AttributeError:
+            raise CommandError("Cound not find the application named '%s'" % var_name)

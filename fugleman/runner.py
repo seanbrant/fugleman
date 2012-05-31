@@ -2,7 +2,41 @@ import os
 import sys
 from optparse import OptionParser
 
-from fugleman import commands, get_version
+from fugleman import commands, __version__
+
+
+class LaxOptionParser(OptionParser):
+    # Borrowed from django.core.management.
+
+    def _process_args(self, largs, rargs, values):
+        """
+        Overrides OptionParser._process_args to exclusively handle default
+        options and ignore args and other options.
+
+        This overrides the behavior of the super class, which stop parsing
+        at the first unrecognized option.
+
+        """
+        while rargs:
+            arg = rargs[0]
+            try:
+                if arg[0:2] == "--" and len(arg) > 2:
+                    # process a single long option (possibly with value(s))
+                    # the superclass code pops the arg off rargs
+                    self._process_long_opt(rargs, values)
+                elif arg[:1] == "-" and len(arg) > 1:
+                    # process a cluster of short options (possibly with
+                    # value(s) for the last one only)
+                    # the superclass code pops the arg off rargs
+                    self._process_short_opts(rargs, values)
+                else:
+                    # it's either a non-default option or an arg
+                    # either way, add it to the args list so we can keep
+                    # dealing with options
+                    del rargs[0]
+                    raise Exception
+            except:
+                largs.append(arg)
 
 
 class CommandRunner(object):
@@ -14,9 +48,9 @@ class CommandRunner(object):
         self.argv = argv
         self.stdout = stdout
         self.prog = os.path.basename(self.argv[0])
-        self.parser = OptionParser(
+        self.parser = LaxOptionParser(
            usage='%s subcommand [options] [args]' % self.prog,
-           version=get_version(),
+           version=__version__,
         )
 
     def print_help(self):

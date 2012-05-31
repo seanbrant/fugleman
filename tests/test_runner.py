@@ -3,7 +3,7 @@ from StringIO import StringIO
 
 from mock import Mock
 
-from fugleman import get_version
+from fugleman import __version__
 from fugleman.runner import CommandRunner
 
 
@@ -40,7 +40,7 @@ class CommandRunnerTestCase(BaseCommandRunnerTestCase):
 
     def test_it_has_a_version_subcommand(self):
         response = self.call_command('PROGNAME', 'version')
-        self.assertIn('%s\n' % get_version(), response)
+        self.assertIn('%s\n' % __version__, response)
 
     def test_it_prints_a_command_error_on_invalid_command(self):
         response = self.call_command('PROGNAME', 'not-a-subcommand')
